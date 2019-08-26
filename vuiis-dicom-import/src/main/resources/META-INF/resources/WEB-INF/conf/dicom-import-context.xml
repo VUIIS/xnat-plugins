@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+<bean name="vuiisProjectIdent" class="org.nrg.dcm.id.VuiisDicomProjectIdentifier" />
+<bean name="baseSubjectIdent" class="org.nrg.dcm.id.ClassicDicomObjectIdentifier" factory-method="getSessionExtractors"/>
+<bean name="baseSessionIdent" class="org.nrg.dcm.id.ClassicDicomObjectIdentifier" factory-method="getSubjectExtractors"/>
+<bean name="baseAAIdent" class="org.nrg.dcm.id.ClassicDicomObjectIdentifier" factory-method="getAAExtractors"/>
+<bean name="dicomObjectIdentifier" class="org.nrg.dcm.id.VuiisDicomObjectIdentifier">
+	<constructor-arg ref="vuiisProjectIdent"/>
+	<constructor-arg ref="baseSubjectIdent"/>
+	<constructor-arg ref="baseSessionIdent"/>
+	<constructor-arg ref="baseAAIdent"/>
+	<property name="userProvider" ref="receivedFileUserProvider"/>
+</bean>
+</beans>
