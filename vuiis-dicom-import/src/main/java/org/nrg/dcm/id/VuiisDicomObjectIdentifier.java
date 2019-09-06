@@ -74,38 +74,45 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
         int uindex = -1;
         int cindex = -1;
         String sesssubj = null;
+        String label = null;
 
         // Check that PatientComments has not been set
         if (o.contains(Tag.PatientComments) && 
             o.getString(Tag.PatientComments) != null && 
             !o.getString(Tag.PatientComments).trim().equals("")) {
 
-            _log.warn("Parsing Session from PatientComments");
+            _log.debug("Parsing Session from PatientComments");
 
-            return Labels.toLabelChars(_sessionExtractor.extract(o));
+            label = Labels.toLabelChars(_sessionExtractor.extract(o));
+        } else {
+
+            _log.debug("Parsing Session from PatientID");
+            vuiis_id = o.getString(Tag.PatientID);
+            if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
+                cindex = vuiis_id.indexOf('^');
+                sesssubj = vuiis_id.substring(cindex + 1);
+                if (sesssubj.indexOf('_') > -1) {
+                    uindex = sesssubj.indexOf('_');
+                    label = sesssubj.substring(0, uindex);
+                } else {
+                    label =  sesssubj;
+                }
+            } else { // handle DICOM from VUIIS MR
+                uindex = vuiis_id.indexOf('_');
+                if (uindex == -1) { // No split token found, use the whole value
+                    label = vuiis_id;
+                } else if(uindex >= vuiis_id.length() - 1) { // Text only on left side
+                    label = "UNKNOWN_SESSION";
+                } else { // Text on both sides
+                    label = vuiis_id.substring(uindex + 1);
+                }
+            }
         }
 
-        _log.warn("Parsing Session from PatientName");
-        vuiis_id = o.getString(Tag.PatientName);
-        if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
-            cindex = vuiis_id.indexOf('^');
-            sesssubj = vuiis_id.substring(cindex + 1);
-            if (sesssubj.indexOf('_') > -1) {
-                uindex = sesssubj.indexOf('_');
-                return sesssubj.substring(0, uindex);
-            } else {
-                return sesssubj;
-            }
-        } else { // handle DICOM from VUIIS MR
-            uindex = vuiis_id.indexOf('_');
-            if (uindex == -1) { // No split token found, use the whole value
-                return vuiis_id;
-            } else if(uindex >= vuiis_id.length() - 1) { // Text only on left side
-                return "UNKNOWN_SESSION";
-            } else { // Text on both sides
-                return vuiis_id.substring(uindex + 1);
-            }
-        }
+        // If we replace PatientID then we lose the project
+        //o.putString(Tag.PatientID, o.vrOf(Tag.PatientID), label);
+        
+        return label;
     }
 
     @Override
@@ -114,38 +121,45 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
         int uindex = -1;
         int cindex = -1;
         String sesssubj = null;
+        String label = null;
 
         // Check that PatientComments has not been set
         if (o.contains(Tag.PatientComments) && 
             o.getString(Tag.PatientComments) != null && 
             !o.getString(Tag.PatientComments).trim().equals("")) {
 
-            _log.warn("Parsing Subject from PatientComments");
+            _log.debug("Parsing Subject from PatientComments");
             
-            return Labels.toLabelChars(_subjectExtractor.extract(o));
+            label = Labels.toLabelChars(_subjectExtractor.extract(o));
+        } else {
+            _log.debug("Parsing Subject from PatientName");
+            vuiis_id = o.getString(Tag.PatientName);
+            if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
+                cindex = vuiis_id.indexOf('^');
+                sesssubj = vuiis_id.substring(cindex + 1);
+                if (sesssubj.indexOf('_') > -1) {
+                    uindex = sesssubj.indexOf('_');
+                    label = sesssubj.substring(uindex + 1);
+                } else {
+                    label = sesssubj;
+                }
+            } else { // handle DICOM from VUIIS MR
+                uindex = vuiis_id.indexOf('_');
+                if (uindex == -1) { // No split token found, use the whole value
+                    label = vuiis_id;
+                } else if(uindex >= vuiis_id.length() - 1) { // Text only on left side
+                    label = "UNKNOWN_SUBJECT";
+                } else { // Text on both sides
+                    label = vuiis_id.substring(uindex + 1);
+                }
+            }
         }
 
-        _log.warn("Parsing Subject from PatientName");
-        vuiis_id = o.getString(Tag.PatientName);
-        if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
-            cindex = vuiis_id.indexOf('^');
-            sesssubj = vuiis_id.substring(cindex + 1);
-            if (sesssubj.indexOf('_') > -1) {
-                uindex = sesssubj.indexOf('_');
-                return sesssubj.substring(uindex + 1);
-            } else {
-                return sesssubj;
-            }
-        } else { // handle DICOM from VUIIS MR
-            uindex = vuiis_id.indexOf('_');
-            if (uindex == -1) { // No split token found, use the whole value
-                return vuiis_id;
-            } else if(uindex >= vuiis_id.length() - 1) { // Text only on left side
-                return "UNKNOWN_SUBJECT";
-            } else { // Text on both sides
-                return vuiis_id.substring(uindex + 1);
-            }
-        }
+        // Replace PatientName with the parsed subject Label
+        _log.debug("Setting PatientName to Subject");
+        o.putString(Tag.PatientName, o.vrOf(Tag.PatientName), label);
+
+        return label;
     }
 
     @Override

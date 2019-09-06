@@ -39,16 +39,16 @@ public class VuiisDicomProjectIdentifier implements DicomProjectIdentifier {
             o.getString(Tag.PatientComments) != null && 
             !o.getString(Tag.PatientComments).trim().equals("")) {
 
-            _log.warn("Getting Project from PatientComments");
+            _log.debug("Getting Project from PatientComments");
 
             // Do what ClassicDicomObjectIdentifier does
             Xnat15DicomProjectIdentifier _id = new Xnat15DicomProjectIdentifier(this.userProjectCache);
             return _id.apply(user, o);
         }
 
-        _log.warn("Parsing Project from PatientName");
+        _log.debug("Parsing Project from PatientID");
 
-        vuiis_id = o.getString(Tag.PatientName);
+        vuiis_id = o.getString(Tag.PatientID);
         if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
             cindex = vuiis_id.indexOf('^');
             project = vuiis_id.substring(0, cindex).toUpperCase();
