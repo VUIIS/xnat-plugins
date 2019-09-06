@@ -16,6 +16,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatProjectdata> {
     public VuiisDicomObjectIdentifier(final DicomProjectIdentifier identifier,
                                           final Iterable<Extractor> subjectExtractors,
@@ -60,6 +64,7 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
         if (null == user && null != userProvider) {
             user = userProvider.get();
         }
+
         return _identifier.apply(user, o);
     }
 
@@ -70,11 +75,17 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
         int cindex = -1;
         String sesssubj = null;
 
-        if (false) {
-            // TODO: figure out when we should not run the custom code
+        // Check that PatientComments has not been set
+        if (o.contains(Tag.PatientComments) && 
+            o.getString(Tag.PatientComments) != null && 
+            !o.getString(Tag.PatientComments).trim().equals("")) {
+
+            _log.warn("Parsing Session from PatientComments");
+
             return Labels.toLabelChars(_sessionExtractor.extract(o));
         }
 
+        _log.warn("Parsing Session from PatientName");
         vuiis_id = o.getString(Tag.PatientName);
         if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
             cindex = vuiis_id.indexOf('^');
@@ -104,12 +115,17 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
         int cindex = -1;
         String sesssubj = null;
 
-        if (false) {
-            // TODO: figure out when we should not run the custom code
-            return Labels.toLabelChars(_subjectExtractor.extract(o));
+        // Check that PatientComments has not been set
+        if (o.contains(Tag.PatientComments) && 
+            o.getString(Tag.PatientComments) != null && 
+            !o.getString(Tag.PatientComments).trim().equals("")) {
 
+            _log.warn("Parsing Subject from PatientComments");
+            
+            return Labels.toLabelChars(_subjectExtractor.extract(o));
         }
 
+        _log.warn("Parsing Subject from PatientName");
         vuiis_id = o.getString(Tag.PatientName);
         if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
             cindex = vuiis_id.indexOf('^');
@@ -174,9 +190,11 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
 
     private static final Pattern TRUE  = Pattern.compile("t(?:rue)?", Pattern.CASE_INSENSITIVE);
     private static final Pattern FALSE = Pattern.compile("f(?:alse)?", Pattern.CASE_INSENSITIVE);
+    private static final Logger _log = LoggerFactory.getLogger(VuiisDicomObjectIdentifier.class);
 
     private UserI           user         = null;
     private Provider<UserI> userProvider = null;
+
 
     private final String                 _name;
     private final DicomProjectIdentifier _identifier;

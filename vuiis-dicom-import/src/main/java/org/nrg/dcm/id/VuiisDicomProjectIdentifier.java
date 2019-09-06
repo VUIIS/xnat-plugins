@@ -16,9 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSortedSet;
 
+import org.nrg.xnat.services.cache.UserProjectCache;
+
 public class VuiisDicomProjectIdentifier implements DicomProjectIdentifier {
     public VuiisDicomProjectIdentifier() {
-        System.out.println("VuiisDicomProjectIdentifier");
     }
 
     private static final ImmutableSortedSet<Integer> tags = ImmutableSortedSet.of();
@@ -32,6 +33,20 @@ public class VuiisDicomProjectIdentifier implements DicomProjectIdentifier {
         int uindex = -1;
         int cindex = -1;
         String project = null;
+
+        // Check that PatientComments has not been set
+        if (o.contains(Tag.PatientComments) && 
+            o.getString(Tag.PatientComments) != null && 
+            !o.getString(Tag.PatientComments).trim().equals("")) {
+
+            _log.warn("Getting Project from PatientComments");
+
+            // Do what ClassicDicomObjectIdentifier does
+            Xnat15DicomProjectIdentifier _id = new Xnat15DicomProjectIdentifier(this.userProjectCache);
+            return _id.apply(user, o);
+        }
+
+        _log.warn("Parsing Project from PatientName");
 
         vuiis_id = o.getString(Tag.PatientName);
         if (vuiis_id.indexOf('^') > -1) { // handle DICOM from VUIIS OCT
@@ -53,4 +68,13 @@ public class VuiisDicomProjectIdentifier implements DicomProjectIdentifier {
     public void reset() {
         // Nothing to do here since this is just set at initialization.
     }
+
+    public final void setUserProjectCache(final UserProjectCache userProjectCache) {
+        this.userProjectCache = userProjectCache;
+    }
+
+    private UserProjectCache userProjectCache = null;
+    
+    private static final Logger _log = LoggerFactory.getLogger(VuiisDicomProjectIdentifier.class);
+
 }
