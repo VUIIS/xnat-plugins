@@ -1,5 +1,5 @@
 group "org.vumc.vuiis.plugin"
-version "genProcData-1.5.0"
+version "genProcData-1.4.3"
 
 buildscript {
     repositories {
