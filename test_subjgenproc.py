@@ -20,10 +20,9 @@ from dax import XnatUtils, dax_tools_utils, task
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 LOGGER = logging.getLogger()
-LOGGER.debug('its log')
 
 
-def create_subjgenproc(xnat, project, subject, proctype, procversion, inputs):
+def create_subjgenproc(xnat, project, subject, proctype, procversion, inputs, plugin_version='2'):
     serialized_inputs = json.dumps(inputs)
     guidchars = 8  # how many characters in the guid?
     today = str(date.today())
@@ -47,14 +46,24 @@ def create_subjgenproc(xnat, project, subject, proctype, procversion, inputs):
 
     # Build the assessor attributes as key/value pairs
     _label = '-x-'.join([project, subject, proctype, guid[:guidchars]])
-    kwargs = {
-        'label': _label,
-        'ID': guid,
-        'proc:subjgenprocdata/proctype': proctype,
-        'proc:subjgenprocdata/procversion': procversion,
-        'proc:subjgenprocdata/inputs': serialized_inputs,
-        'proc:subjgenprocdata/procstatus': task.NEED_INPUTS,
-        'proc:subjgenprocdata/date': today}
+
+    if plugin_version == '1':
+        kwargs = {
+            'label': _label,
+            'ID': guid,
+            'proc:subjgenprocdata/proctype': proctype,
+            'proc:subjgenprocdata/procversion': procversion,
+            'proc:subjgenprocdata/procstatus': task.NEED_INPUTS,
+            'proc:subjgenprocdata/date': today}
+    else:
+        kwargs = {
+            'label': _label,
+            'ID': guid,
+            'proc:subjgenprocdata/proctype': proctype,
+            'proc:subjgenprocdata/procversion': procversion,
+            'proc:subjgenprocdata/inputs': serialized_inputs,
+            'proc:subjgenprocdata/procstatus': task.NEED_INPUTS,
+            'proc:subjgenprocdata/date': today}
 
     # Create the assessor
     LOGGER.info('creating subject asssessor:{}'.format(_label))
@@ -123,7 +132,7 @@ def upload_snapshots_subjgenproc(sassr, dirpath):
             params={"event_reason": "DAX upload"})
 
 
-def upload_assessor_subjgenproc(dirpath, xnat, delete=True):
+def upload_assessor_subjgenproc(dirpath, xnat, delete=True, plugin_version='2'):
     resdir = os.path.dirname(dirpath)
     diskq_dir = os.path.join(resdir, 'DISKQ')
 
@@ -181,18 +190,30 @@ def upload_assessor_subjgenproc(dirpath, xnat, delete=True):
     _memused = ctask.get_memused() or 'null'
     _walltime = ctask.get_walltime() or 'null'
     _jobstartdate = ctask.get_jobstartdate() or 'null'
-    sassr.attrs.mset({
-        'proc:subjgenprocdata/procstatus': _status,
-        'proc:subjgenprocdata/validation/status': task.NEEDS_QA,
-        'proc:subjgenprocdata/jobid': _jobid,
-        'proc:subjgenprocdata/jobnode': _jobnode,
-        'proc:subjgenprocdata/memused': _memused,
-        'proc:subjgenprocdata/walltimeused': _walltime,
-        'proc:subjgenprocdata/dax_docker_version': _dax_docker_version,
-        'proc:subjgenprocdata/jobstartdate': _jobstartdate,
-        'proc:subjgenprocdata/dax_version': _dax_version,
-        'proc:subjgenprocdata/dax_version_hash': _git_revision,
-    })
+
+    if plugin_version == '1':
+        sassr.attrs.mset({
+            'proc:subjgenprocdata/procstatus': _status,
+            'proc:subjgenprocdata/validation/status': task.NEEDS_QA,
+            'proc:subjgenprocdata/jobid': _jobid,
+            'proc:subjgenprocdata/jobnode': _jobnode,
+            'proc:subjgenprocdata/memused': _memused,
+            'proc:subjgenprocdata/walltimeused': _walltime,
+            'proc:subjgenprocdata/jobstartdate': _jobstartdate,
+        })
+    else:
+        sassr.attrs.mset({
+            'proc:subjgenprocdata/procstatus': _status,
+            'proc:subjgenprocdata/validation/status': task.NEEDS_QA,
+            'proc:subjgenprocdata/jobid': _jobid,
+            'proc:subjgenprocdata/jobnode': _jobnode,
+            'proc:subjgenprocdata/memused': _memused,
+            'proc:subjgenprocdata/walltimeused': _walltime,
+            'proc:subjgenprocdata/dax_docker_version': _dax_docker_version,
+            'proc:subjgenprocdata/jobstartdate': _jobstartdate,
+            'proc:subjgenprocdata/dax_version': _dax_version,
+            'proc:subjgenprocdata/dax_version_hash': _git_revision,
+        })
 
     if delete:
         # Delete the task from diskq
