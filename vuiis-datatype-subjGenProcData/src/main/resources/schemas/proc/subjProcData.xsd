@@ -8,7 +8,7 @@
   xmlns:xnat="http://nrg.wustl.edu/xnat"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:import namespace="http://nrg.wustl.edu/xnat" schemaLocation="../xnat/xnat.xsd"/>
-  <xs:element name="Subject Processing" type="proc:subjGenProcData"/>
+  <xs:element name="SubjectProcessing" type="proc:subjGenProcData"/>
   <xs:complexType name="subjGenProcData">
     <xs:complexContent>
       <xs:extension base="xnat:subjectAssessorData">
