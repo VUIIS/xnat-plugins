@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  attributeFormDefault="unqualified"
+  elementFormDefault="qualified"
+  targetNamespace="http://nrg.wustl.edu/proc"
+  xmlns:proc="http://nrg.wustl.edu/proc"
+  xmlns:xdat="http://nrg.wustl.edu/xdat"
+  xmlns:xnat="http://nrg.wustl.edu/xnat"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://nrg.wustl.edu/xnat" schemaLocation="../xnat/xnat.xsd"/>
+  <xs:element name="SubjectProcessing" type="proc:subjGenProcData"/>
+  <xs:complexType name="subjGenProcData">
+    <xs:complexContent>
+      <xs:extension base="xnat:subjectAssessorData">
+        <xs:sequence>
+          <xs:element name="procstatus" type="xs:string" use="optional" />
+          <xs:element name="proctype" type="xs:string" use="optional" />
+          <xs:element name="procversion" type="xs:string" use="optional" />
+          <xs:element name="jobid" type="xs:string" use="optional" />
+          <xs:element name="walltimeused" type="xs:string" use="optional" />
+          <xs:element name="memusedmb" type="xs:integer" use="optional" />
+          <xs:element name="jobstartdate" type="xs:date" use="optional"/>
+          <xs:element name="memused" type="xs:string" use="optional" />
+          <xs:element name="jobnode" type="xs:string" use="optional" />
+          <xs:element name="inputs" type="xs:string" use="optional">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:maxLength value="10000"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="dax_docker_version" type="xs:string" use="optional" />
+          <xs:element name="dax_version" type="xs:string" use="optional" />
+          <xs:element name="dax_version_hash" type="xs:string" use="optional" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>
