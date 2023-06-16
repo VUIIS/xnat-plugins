@@ -111,7 +111,7 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
 
         // If we replace PatientID then we lose the project
         //o.putString(Tag.PatientID, o.vrOf(Tag.PatientID), label);
-        
+        label = label.replaceAll("\\s+", "_");
         return label;
     }
 
@@ -154,7 +154,7 @@ public class VuiisDicomObjectIdentifier implements DicomObjectIdentifier<XnatPro
                 }
             }
         }
-
+        label = label.replaceAll("\\s+", "_");
         // Replace PatientName with the parsed subject Label
         _log.debug("Setting PatientName to Subject");
         o.putString(Tag.PatientName, o.vrOf(Tag.PatientName), label);
